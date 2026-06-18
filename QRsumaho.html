@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QRコード読み取り</title>
+
+  <!-- ★ここが重要 -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    body {
+      text-align: center;
+      font-family: sans-serif;
+    }
+    #reader {
+      width: 300px;
+      margin: auto;
+    }
+    button {
+      font-size: 18px;
+      padding: 10px;
+      margin: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>QR読み取り</h2>
+
+<button onclick="startScan()">読み取り開始</button>
+<button onclick="stopScan()">停止</button>
+
+<div id="reader"></div>
+
+<p id="result"></p>
+
+<script>
+let html5QrCode;
+
+function startScan() {
+  if (html5QrCode) {
+    return;
+  }
+
+  html5QrCode = new Html5Qrcode("reader");
+
+  Html5Qrcode.getCameras().then(devices => {
+    if (devices.length === 0) {
+      alert("カメラが見つかりません");
+      return;
+    }
+
+    const backCamera = devices.find(d =>
+      d.label.toLowerCase().includes("back")
+    );
+
+    const cameraId = backCamera ? backCamera.id : devices[0].id;
+
+    html5QrCode.start(
+      cameraId,
+      { fps: 10, qrbox: 250 },
+      (decodedText) => {
+        document.getElementById("result").innerText = decodedText;
+        stopScan();
+      }
+    );
+
+  }).catch(err => {
+    alert("エラー: " + err);
+  });
+}
+
+function stopScan() {
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => {
+      html5QrCode = null;
+    });
+  }
+}
+</script>
+
+</body>
+</html>
